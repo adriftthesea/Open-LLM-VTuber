@@ -53,3 +53,14 @@ class LLMInterface(metaclass=abc.ABCMeta):
 
         raise NotImplementedError
 
+    def create_persona(self,persona_prompt,persona_name) -> None:
+        """
+
+        Args:
+            prompt_path:
+            prompt_name:
+
+        Returns:
+
+        """
+

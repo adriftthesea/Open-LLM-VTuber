@@ -36,7 +36,6 @@ class LettaLLMClient(LLMInterface):
             self.agent_id = client.get_agent_id(agent_name=name)
             if self.agent_id is None:
                 self.agent = self.client.create_agent(name=name)
-                self.client.create_persona('Stella', )
                 logger.success(f"CREATED AGENT {self.agent.name}")
             else:
                 self.agent = self.client.get_agent(agent_id=self.agent_id)
@@ -91,9 +90,12 @@ class LettaLLMClient(LLMInterface):
         """
         self.memory.clear()
 
-    def create_persona(self,persona_name,persona_file):
+    def create_persona(self,persona_name,persona_contents):
         """
         Creates a persona block
         """
+        self.client.server.create_or_fetch_block_by_id(self.client.user_id,persona_name, persona_contents)
+
+
 
 

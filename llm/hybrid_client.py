@@ -342,8 +342,8 @@ class HybridClient(AbstractClient):
             raise ValueError(f"Failed to update agent: {response.text}")
         return AgentState(**response.json())
 
-    def get_memory_block(self, id: str) -> Optional[Block]:
-        return self.server.create_or_fetch_block_by_id(self.user_id, id)
+    def get_memory_block(self, id: str, value='') -> Optional[Block]:
+        return self.server.create_or_fetch_block_by_id(self.user_id, id, value)
 
     def get_tools_from_agent(self, agent_id: str) -> List[Tool]:
         """

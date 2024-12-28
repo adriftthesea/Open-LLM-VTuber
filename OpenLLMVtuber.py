@@ -1,9 +1,7 @@
 import os
-import queue
 import random
 import shutil
 import threading
-import uuid
 from typing import Callable, Iterator, Optional
 
 import numpy as np
@@ -13,8 +11,6 @@ from live2d_model import Live2dModel
 from llm.llm_client import LettaLLMClient
 from llm.llm_interface import LLMInterface
 from prompts import prompt_loader
-from translate.translate_factory import TranslateFactory
-from translate.translate_interface import TranslateInterface
 from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
 
@@ -66,6 +62,7 @@ class OpenLLMVTuberMain:
         self._continue_exec_flag = threading.Event()
         self.not_is_blocking_event = threading.Event()
         self.llm = LettaLLMClient()
+        self.llm.create_persona(self.config.get('PERSONA_NAME'),self.get_persona_prompt())
         # clear
         self.not_is_blocking_event.clear()
         self._continue_exec_flag.set()  # Set the flag to continue execution
@@ -80,25 +77,6 @@ class OpenLLMVTuberMain:
                 self.tts = custom_tts
         else:
             self.tts = None
-
-        # Init Translator if enabled
-        if self.config.get("TRANSLATE_AUDIO", False):
-            try:
-                translate_provider = self.config.get("TRANSLATE_PROVIDER", "DeepLX")
-                self.translator = TranslateFactory.get_translator(
-                    translate_provider=translate_provider,
-                    **self.config.get(translate_provider, {}),
-                )
-            except Exception as e:
-                print(f"Error initializing Translator: {e}")
-                print("Proceed without Translator.")
-                self.translator = None
-        else:
-            self.translator = None
-
-        # Initialize the LLM instance
-
-    # Initialization methods
 
     def init_live2d(self) -> Live2dModel | None:
         if not self.config.get("LIVE2D", False):
@@ -165,9 +143,9 @@ class OpenLLMVTuberMain:
         """
         Construct and return the system prompt based on the configuration file.
         """
-        if self.config.get("PERSONA_CHOICE"):
+        if self.config.get("PERSONA_PATH"):
             system_prompt = prompt_loader.load_persona(
-                self.config.get("PERSONA_CHOICE")
+                self.config.get("PERSONA_PATH")
             )
         else:
             system_prompt = self.config.get("DEFAULT_PERSONA_PROMPT_IN_YAML")
@@ -176,10 +154,6 @@ class OpenLLMVTuberMain:
             system_prompt += prompt_loader.load_util(
                 self.config.get("LIVE2D_Expression_Prompt")
             ).replace("[<insert_emomap_keys>]", self.live2d.emo_str)
-
-        if self.verbose:
-            print("\n === System Prompt ===")
-            print(system_prompt)
 
         return system_prompt
 
